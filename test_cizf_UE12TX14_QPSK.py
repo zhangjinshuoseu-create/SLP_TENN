@@ -1,0 +1,40 @@
+# -*-coding:utf-8-*-
+from func.train_func import *
+from func import init_func
+from models.te_models import *
+from models.prec_models import *
+
+if __name__ == '__main__':
+    init_func.setup_seed(3407)
+
+    out_folder = './save_data/CIZF_UE12TX14_QPSK/'
+    in_folder = './train_data/CIZF_UE12TX14_QPSK/'
+    upsilon_file = 'upsilon_cizf'
+    upsilon_key = 'upsilon_cizf'
+    symbol_file = 'symbol_data'
+    symbol_key = 'symbol_data'
+    delta_file = 'delta_cizf'
+    delta_key = 'delta_cizf'
+
+    batch_size = 400
+    net_name = 'TE'
+    gpu_id = 1
+
+    amde_dim_list = generate_amde_dim_list(n_amde_layer=4, n_dim=2)
+    mde_dim_list = generate_mde_dim_list(n_dim=2)
+    fa_dim = (1, 2)
+    ea_dim = generate_ea_dim_list(n_dim=2)
+    model = SLPN(
+        d_c=8, d_b=4, d_hidden=4, n_amde_layer=4,
+        amde_dim_list=amde_dim_list, mde_dim_list=mde_dim_list,
+        fa_dim=fa_dim, ea_dim=ea_dim)
+
+    precoding_test_param = init_func.PrecodingTestParam_CIZF(
+        model, net_name, in_folder, out_folder,
+        batch_size=batch_size, gpu_id=gpu_id,
+        begin_num=90000, n_test=10000,
+        upsilon_file=upsilon_file, upsilon_key=upsilon_key,
+        symbol_file=symbol_file, symbol_key=symbol_key,
+        delta_file=delta_file, delta_key=delta_key,
+        constellation='QPSK', pskOrder=2)
+    CIZF_SLP_test_supervised(precoding_test_param)
