@@ -1,6 +1,6 @@
 # 📡 SLP-TENN
 
-[![Code (GitHub)](https://img.shields.io/badge/Code-GitHub-blue?logo=github)]([https://github.com/{user}/{repo}](https://github.com/zhangjinshuoseu-create/SLP_TENN))
+[![Code (GitHub)](https://img.shields.io/badge/Code-GitHub-blue?logo=github)](https://github.com/zhangjinshuoseu-create/SLP_TENN)
 [![Paper (arXiv)](https://img.shields.io/badge/Paper-arXiv-b31b1b?logo=arxiv)](https://arxiv.org/abs/{arxiv_id})
 [![Paper (IEEE)](https://img.shields.io/badge/Paper-IEEE-0052A5?logo=IEEE&logoColor=white)](https://ieeexplore.ieee.org/document/{doc_id})
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/{user}/{repo}/blob/main/LICENSE)
