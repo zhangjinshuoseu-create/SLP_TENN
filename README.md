@@ -105,23 +105,44 @@ LCSLP_github/
 
 ## 🚀 Usage
 
-**Requirements:** PyTorch, NumPy, SciPy, `einops`. A CUDA GPU is expected (set via `gpu_id` in each script).
-
 ### 1. Prepare data
 
-Put the `.mat` files under `./train_data/{EXPERIMENT_NAME}/`; outputs (checkpoints and predictions) go to `./save_data/{EXPERIMENT_NAME}/`. Each criterion expects:
+Put the `.mat` files under `./train_data/{EXPERIMENT_NAME}/`. Checkpoints / predictions are written to `./save_data/{EXPERIMENT_NAME}/`. Shapes below are **as stored on disk** (what `loadmat` returns), with `N` = number of samples.
 
-- **CIZF-DL** — `upsilon_cizf` `[N, K, K]`, `symbol_data` `[N, K, L]`, `delta_cizf` `[N, 2K, L]`.
-- **CIMMSE-DL** (multi-SNR) — `upsilon_cimmse` `[N, K, K, n_snr]`, `symbol_data` `[N, K, L]`, `delta_cimmse` `[N, n_snr, 2K, L]`; SNR list `{0, 5, …, 30}` dB.
-- **RCIMMSE-DL** — `channel_data` `[N, K, N_T]`, `symbol_data` `[N, K, L]`, `U_data`, `omega_data`, plus `psi_data` (for RSLPN-A) or `delta_data` (for RSLPN-B); `txlen = 50`, `alpha = 0.995`, SNR list `{10, …, 40}` dB.
+- **CIZF-DL** loads:
+  - `upsilon_cizf` — complex `[N, K, K]`
+  - `symbol_data` — complex `[N, K, L]`
+  - `delta_cizf` — real `[N, 2K, L]`
+
+- **CIMMSE-DL** loads:
+  - `upsilon_cimmse` — complex `[N, K, K, n_snr]`
+  - `symbol_data` — complex `[N, K, L]`
+  - `delta_cimmse` — real `[N, n_snr, 2K, L]`
+
+- **RCIMMSE-DL / RSLPN-A**:
+  - `channel_data` — complex `[K, N_T, N]`
+  - `symbol_data` — complex `[N, K, L]`
+  - `U_data` — complex `[N, K, N_T]`
+  - `psi_data` — real `[N, K, L, n_snr]`
+
+- **RCIMMSE-DL / RSLPN-B**:
+  - `channel_data` — complex `[K, N_T, N]`
+  - `symbol_data` — complex `[N, K, L]`
+  - `omega_data` — `[K, N_T, N]`
+  - `U_data` — complex `[N, K, N_T]`
+  - `delta_data` — real `[N, 2K, L, n_snr]`
 
 ### 2. Train
 
 Hyperparameters are set inside each script (no CLI arguments). Run the one you need:
 
 ```bash
-python train_cizf_UE12TX12_QPSK.py     # CIZF-DL
-python train_cimmse_UE12TX14_QPSK.py   # CIMMSE-DL
+python train_cizf_UE12TX12_QPSK.py
+python train_cizf_UE12TX14_QPSK.py
+python train_cizf_UE12TX14_16QAM.py
+python train_cimmse_UE12TX12_QPSK.py
+python train_cimmse_UE12TX14_QPSK.py
+python train_cimmse_UE12TX14_16QAM.py
 python train_rcimmse_RSLPN_A.py        # robust: train A first,
 python train_rcimmse_RSLPN_B.py        #         then B
 ```
@@ -132,7 +153,11 @@ Checkpoints are saved to `./save_data/.../TE.pth.tar`.
 
 ```bash
 python test_cizf_UE12TX12_QPSK.py
+python test_cizf_UE12TX14_QPSK.py
+python test_cizf_UE12TX14_16QAM.py
+python test_cimmse_UE12TX12_QPSK.py
 python test_cimmse_UE12TX14_QPSK.py
+python test_cimmse_UE12TX14_16QAM.py
 python test_rcimmse_RSLPN.py
 ```
 
@@ -176,5 +201,3 @@ If you find this repository useful, please cite:
 Released under the [MIT License](LICENSE).
 
 ---
-
-
