@@ -193,15 +193,14 @@ Tests load `TE.pth.tar` from the corresponding `out_folder`, print Test MSE, and
 If you find this repository useful, please cite:
 
 ```bibtex
-@ARTICLE{slptenn,
-  author  = {Zhang, Jinshuo and Wang, Yafei and Yi, Xinping and Wang, Wenjin and Jin, Shi and Chatzinotas, Symeon and Ottersten, Bj\"orn},
-  title   = {Unlocking Symbol-Level Precoding Efficiency Through Tensor Equivariant Neural Network},
-  journal = {},
-  year    = {},
-  volume  = {},
-  number  = {},
-  pages   = {},
-  doi     = {}
+@misc{zhang2025unlockingsymbollevelprecodingefficiency,
+      title={Unlocking Symbol-Level Precoding Efficiency Through Tensor Equivariant Neural Network}, 
+      author={Jinshuo Zhang and Yafei Wang and Xinping Yi and Wenjin Wang and Shi Jin and Symeon Chatzinotas and Björn Ottersten},
+      year={2025},
+      eprint={2510.02108},
+      archivePrefix={arXiv},
+      primaryClass={eess.SP},
+      url={https://arxiv.org/abs/2510.02108}, 
 }
 ```
 
