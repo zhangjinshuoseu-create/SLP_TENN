@@ -128,6 +128,7 @@ LCSLP_github/
 ├── train_data/                    # (not shipped) place .mat datasets here
 ├── save_data/                     # (created at runtime) checkpoints & preds
 └── README.md
+```
 
 ---
 
@@ -167,7 +168,6 @@ python train_cimmse_UE12TX14_QPSK.py
 # RCIMMSE-DL: train A, then B
 python train_rcimmse_RSLPN_A.py
 python train_rcimmse_RSLPN_B.py
-```
 
 ```
 
