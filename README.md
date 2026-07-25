@@ -1,10 +1,11 @@
+
 # 📡 SLP-TENN
 
 [![Code (GitHub)](https://img.shields.io/badge/Code-GitHub-blue?logo=github)](https://github.com/zhangjinshuoseu-create/SLP_TENN)
 [![Paper (arXiv)](https://img.shields.io/badge/Paper-arXiv-b31b1b?logo=arxiv)](https://arxiv.org/abs/2510.02108)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/{user}/{repo}/blob/main/LICENSE)
 
-A deep-learning toolkit that learns the **perturbation factors** of **symbol-level precoding (SLP)** with a **tensor equivariant neural network (TENN)**. Instead of solving a non-negative least squares (NNLS) problem iteratively per symbol, the network maps the closed-form problem information $(\mathbf{B}, \mathbf{C})$ directly to the optimal perturbation tensor $\mathbf{D}$, achieving linear online complexity while retaining most of the performance gains of optimal SLP. The framework supports both the **CIZF** (SINR-balancing) and **CIMMSE** criteria, both **PSK and QAM** constellations, and extends to **imperfect CSI** (robust SLP under channel aging).
+This repository provides the open-source code for the paper **"[Unlocking Symbol-Level Precoding Efficiency Through Tensor Equivariant Neural Network](https://arxiv.org/abs/2510.02108)"**. Building on the **tensor equivariant neural network (TENN)**, the paper proposes an **attention-based multidimensional equivariant (AMDE)** module, and uses it to design a **unified deep-learning framework for symbol-level precoding (SLP)** — one that covers both the **CIZF** (SINR-balancing) and **CIMMSE** criteria, both **PSK and QAM** constellations, and both **perfect and imperfect CSI** (robust SLP under channel aging). The framework retains most of the performance gains of optimal SLP while cutting the online per-symbol complexity to **linear**, achieving roughly an **80× GPU speedup** over conventional SLP.
 
 ---
 
@@ -16,19 +17,14 @@ A deep-learning toolkit that learns the **perturbation factors** of **symbol-lev
 
 ## 🧠 Core Concepts
 
-Symbol-level precoding exploits **constructive interference (CI)**: rather than suppressing inter-user interference, it pushes each received constellation point deeper into its correct decision region. For a symbol $s_{k}$, the allowed shift lies in its **constructive interference region (CIR)**, parameterized by two boundary vectors $\mu_{k}$, $\nu_{k}$ and two non-negative **perturbation factors** $\delta_{\mu_{k}}$, $\delta_{\nu_{k}}$:
+This repository provides a **low-complexity, deep-learning-based framework for symbol-level precoding (SLP)**. Its core is a tensor-equivariant network that learns the SLP **perturbation factors** directly, replacing the expensive per-symbol iterative optimization used by conventional SLP.
 
-$$
-\tilde{\mathbf{s}}_{c}[l] = \mathbf{s}_{c}[l] + \boldsymbol{\Lambda}_{\mu}[l]\boldsymbol{\delta}_{\mu}[l] + \boldsymbol{\Lambda}_{\nu}[l]\boldsymbol{\delta}_{\nu}[l].
-$$
+**Why.** SLP exploits **constructive interference (CI)** — it pushes each received constellation point deeper into its correct decision region — so it clearly outperforms linear precoding. The price is complexity: the optimal SLP solution requires solving a **non-negative least squares (NNLS)** problem iteratively, *symbol by symbol*, which is too costly for real-time deployment.
 
-Both the CIZF and CIMMSE problems reduce to an NNLS problem whose optimal solution is characterized by its **KKT conditions**. The paper packs the available KKT information into a **bias term** $\mathbf{B}_{c}$ and a **coefficient term** $\mathbf{C}_{c}$, and defines the target mapping
+**How.** The paper first analyzes the SLP problem and proves that the mapping from the problem information to its optimal solution is **tensor equivariant (TE)** — permuting users or symbols at the input permutes the solution in exactly the same way (Proposition 1). By matching the network's parameter-sharing pattern to this TE structure, the resulting networks obtain low complexity and strong generalization. Two networks are designed accordingly:
 
-$$
-G(\mathbf{B}_{c}, \mathbf{C}_{c}) = \mathbf{D}^{\star}, \qquad \mathbf{D}^{\star} = [\boldsymbol{\delta}_{\mu}^{\star}, \boldsymbol{\delta}_{\nu}^{\star}].
-$$
-
-The key theoretical result (Proposition 1) is that this mapping is **tensor equivariant**: permuting users or symbols at the input permutes the output the same way. This structure is what the network is built to respect.
+- **SLPN** — for **perfect CSI**, learns the mapping $G(\mathbf{B}_c,\mathbf{C}_c)=\mathbf{D}^\star$ under both the CIZF and CIMMSE criteria, where $\mathbf{D}^\star=[\boldsymbol{\delta}_\mu^\star,\boldsymbol{\delta}_\nu^\star]$ collects the optimal perturbation factors.
+- **RSLPN** — for **imperfect CSI** (channel aging), a two-stage pipeline (RSLPN-A + RSLPN-B) that realizes the robust MMSE design while preserving the same TE.
 
 **Tensor Equivariance (TE)** generalizes permutation equivariance to high-dimensional tensors and includes:
 
@@ -47,6 +43,41 @@ The key theoretical result (Proposition 1) is that this mapping is **tensor equi
 - 📶 **General** — one architecture covers CIZF & CIMMSE, PSK & QAM, and perfect & imperfect CSI.
 
 ---
+
+
+
+## 🔄 Scope: From Network Output $\mathbf{D}$ to Transmit Signal
+
+> [!IMPORTANT]
+> **This repository implements only the learning core.** From the channel $\mathbf{H}$ and symbols $\mathbf{S}$, it builds the network inputs $(\mathbf{B},\mathbf{C})$ and trains/tests the network that outputs the **perturbation tensor $\mathbf{D}$** (the set of $\delta$ factors). Everything that turns $\mathbf{D}$ into an actual transmit signal — post-net refinement, closed-form precoding, block-level power reallocation, and SER evaluation — lives in a **separate MATLAB pipeline and is _not_ open-sourced here**. The steps below summarize that downstream so the full chain stays reproducible from the paper.
+
+```text
+This repo   :  H, S ──► build (B, C) ──► [ SLPN / RSLPN ] ──► D = [δ̂μ, δ̂ν]
+MATLAB side :        D ──► (optional ρ refine) ──► s̃c ──► closed-form xc ──► block rescale ──► SER
+```
+
+Equation numbers below match [`paper/LCSLP.pdf`](paper/LCSLP.pdf).
+
+**Step 1 — Non-negativity & decomposition (Eq. 48–49).**
+$$\hat{\mathbf{D}} = \mathrm{ReLU}(\mathbf{D}), \qquad \hat{\boldsymbol{\delta}}_\mu[l] = \hat{\mathbf{D}}_{[:,l,1]}, \qquad \hat{\boldsymbol{\delta}}_\nu[l] = \hat{\mathbf{D}}_{[:,l,2]}.$$
+
+**Step 2 — (Optional) post-net refinement (Eq. 50–52).** A scalar $\rho[l]\ge 0$ rescales the perturbation. With $\mathbf{p}[l] = \boldsymbol{\Lambda}_\mu[l]\hat{\boldsymbol{\delta}}_\mu[l] + \boldsymbol{\Lambda}_\nu[l]\hat{\boldsymbol{\delta}}_\nu[l]$,
+$$\rho[l] = \max\left\{0,\ -\frac{\mathbf{s}_c^H[l]\boldsymbol{\Upsilon}\mathbf{p}[l] + \mathbf{p}^H[l]\boldsymbol{\Upsilon}\mathbf{s}_c[l]}{2\,\mathbf{p}^H[l]\boldsymbol{\Upsilon}\mathbf{p}[l]}\right\}, \qquad \tilde{\mathbf{s}}_c[l] = \mathbf{s}_c[l] + \rho[l]\,\mathbf{p}[l].$$
+Without refinement, set $\rho[l]=1$, i.e. $\tilde{\mathbf{s}}_c[l] = \mathbf{s}_c[l] + \mathbf{p}[l]$ (Eq. 11 / 17).
+
+**Step 3 — Closed-form precoding.**
+- CIZF (Eq. 10): $\ \mathbf{x}_c^\star[l] = \gamma^\star[l]\,\mathbf{H}^\dagger\tilde{\mathbf{s}}_c^\star[l], \quad \gamma^\star[l] = \sqrt{P_T / \lVert \mathbf{H}^\dagger\tilde{\mathbf{s}}_c^\star[l]\rVert_2^2}.$
+- CIMMSE (Eq. 15–16): $\ \mathbf{x}_c^\star[l] = \gamma^\star[l]\,\mathbf{H}^H\boldsymbol{\Upsilon}_{\mathrm{MMSE}}\tilde{\mathbf{s}}_c^\star[l], \quad \gamma^\star[l] = \sqrt{P_T / \lVert \mathbf{H}^H\boldsymbol{\Upsilon}_{\mathrm{MMSE}}\tilde{\mathbf{s}}_c^\star[l]\rVert_2^2}.$
+
+**Step 4 — Block-level power reallocation (Eq. 18).** One rescaling factor per block:
+$$\bar{\gamma}^\star = \sqrt{\frac{L}{\sum_{l=1}^{L} 1/(\gamma^\star[l])^2}}, \qquad \bar{\mathbf{x}}_c^\star[l] = \frac{\bar{\gamma}^\star}{\gamma^\star[l]}\,\mathbf{x}_c^\star[l].$$
+
+**Step 5 — Demodulation & SER (Eq. 19).** Transmit $\bar{\mathbf{x}}_c^\star[l]$, scale the received signal by $\bar{\gamma}$, demodulate, and compute the SER.
+
+> **Imperfect CSI (robust SLP).** The closed-form precoder $\mathbf{P}[l]$ is instead assembled from Eq. (58)–(61), using the auxiliary variable $\boldsymbol{\Psi}$ (from RSLPN-A) together with the perturbation factors $\mathbf{D}$ (from RSLPN-B).
+
+---
+
 
 ## 🔧 Network / Module Introduction
 
