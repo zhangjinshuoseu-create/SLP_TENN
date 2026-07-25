@@ -1,18 +1,11 @@
 # 📡 SLP-TENN
 
 [![Code (GitHub)](https://img.shields.io/badge/Code-GitHub-blue?logo=github)](https://github.com/zhangjinshuoseu-create/SLP_TENN)
-[![Paper (arXiv)](https://img.shields.io/badge/Paper-arXiv-b31b1b?logo=arxiv)](https://arxiv.org/abs/{arxiv_id})
+[![Paper (arXiv)](https://img.shields.io/badge/Paper-arXiv-b31b1b?logo=arxiv)](https://arxiv.org/abs/2510.02108)
 [![Paper (IEEE)](https://img.shields.io/badge/Paper-IEEE-0052A5?logo=IEEE&logoColor=white)](https://ieeexplore.ieee.org/document/{doc_id})
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/{user}/{repo}/blob/main/LICENSE)
 
 A deep-learning toolkit that learns the **perturbation factors** of **symbol-level precoding (SLP)** with a **tensor equivariant neural network (TENN)**. Instead of solving a non-negative least squares (NNLS) problem iteratively per symbol, the network maps the closed-form problem information $(\mathbf{B}, \mathbf{C})$ directly to the optimal perturbation tensor $\mathbf{D}$, achieving linear online complexity while retaining most of the performance gains of optimal SLP. The framework supports both the **CIZF** (SINR-balancing) and **CIMMSE** criteria, both **PSK and QAM** constellations, and extends to **imperfect CSI** (robust SLP under channel aging).
-
-This repository accompanies the paper:
-
-> **Unlocking Symbol-Level Precoding Efficiency Through Tensor Equivariant Neural Network**
-> Jinshuo Zhang, Yafei Wang, Xinping Yi, Wenjin Wang, Shi Jin, Symeon Chatzinotas, Björn Ottersten.
-
-> **IMPORTANT — Scope of this repository.** The open-sourced code covers **only** the learning core: from problem information (perfect CSI: precomputed $\boldsymbol{\Upsilon}$ and symbols $\mathbf{S}$; imperfect CSI: channel / aging-related features and $\mathbf{S}$) it constructs the network inputs $(\mathbf{B}, \mathbf{C})$ from the KKT conditions and **trains / tests the neural network(s) that produce the perturbation tensor $\mathbf{D}$** (and, for robust SLP, also $\boldsymbol{\Psi}$ via RSLPN-A). The downstream steps — post-net refinement, closed-form recovery of the transmit signal $\mathbf{x}_{c}[l]$, and SER evaluation — are **not** included here (they live in a separate MATLAB pipeline). See [From Network Output D to Transmit Signal](#from-network-output-d-to-transmit-signal) for exactly how to continue the pipeline using the equations in the paper.
 
 ---
 
