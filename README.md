@@ -22,7 +22,7 @@ This repository provides a **low-complexity, deep-learning-based framework for s
 - **SLPN** — for **perfect CSI**.
 - **RSLPN** — for **imperfect CSI**, a two-stage pipeline (RSLPN-A + RSLPN-B) that realizes the robust MMSE design while preserving the same TE.
 
-**Tensor Equivariance (TE)** generalizes permutation equivariance to high-dimensional tensors and the basic modules includes:
+**Tensor Equivariance (TE)** generalizes permutation equivariance to high-dimensional tensors, and the basic modules include:
 
 - **Multidimensional Equivariance (MDE)**: permuting each tensor dimension independently produces the same permutation at the output.
 - **High-Order Equivariance (HOE)**: the same permutation is applied simultaneously across multiple dimensions.
@@ -33,8 +33,8 @@ This repository provides a **low-complexity, deep-learning-based framework for s
 ## ✨ Key Features
 
 - 🌱 **Scalable** — generalizes across different user numbers $K$ and block lengths $L$ without retraining; a single trained network adapts to unseen configurations.
-- ⚡ **Efficient** — linear online per-symbol complexity $\mathcal{O}(KN_T + KF^2)$, replacing the iterative NNLS solver; roughly an 80× GPU speedup over conventional SLP in typical settings.
-- 🧱 **Model-driven** — the network only learns the perturbation factors; the transmit signal is recovered in closed form, keeping the design interpretable.
+- ⚡ **Efficient** — replacing the iterative NNLS solver; roughly an 80× GPU speedup over conventional SLP in typical settings.
+- 🧱 **Model-driven** — the network only learns the perturbation factors; the transmit signal is recovered in closed form.
 - 🔁 **Block-parallel** — an entire symbol block is processed in a single forward pass.
 - 📶 **General** — one architecture covers CIZF & CIMMSE, PSK & QAM, and perfect & imperfect CSI.
 
