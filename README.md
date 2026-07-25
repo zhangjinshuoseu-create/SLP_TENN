@@ -98,46 +98,35 @@ LCSLP_github/
 
 ---
 
+
+<!-- ==================================================================== -->
+<!-- 替换整个 "## 🚀 Usage" 小节 -->
+<!-- ==================================================================== -->
+
 ## 🚀 Usage
 
-Dependencies used by the scripts include PyTorch, NumPy, SciPy (`loadmat` / `savemat`), and `einops`. Training / testing expect a CUDA device index via `gpu_id` (entry scripts use non-negative GPU ids; use CPU only if you change the device string in the training code yourself).
+**Requirements:** PyTorch, NumPy, SciPy, `einops`. A CUDA GPU is expected (set via `gpu_id` in each script).
 
 ### 1. Prepare data
 
-Data are **not** included in this repository. Place `.mat` files under the `in_folder` path configured in each entry script (default pattern: `./train_data/{EXPERIMENT_NAME}/`). Checkpoints and predictions are written to `./save_data/{EXPERIMENT_NAME}/`.
+Datasets are **not** shipped with the repo. Put the `.mat` files under `./train_data/{EXPERIMENT_NAME}/`; outputs (checkpoints and predictions) go to `./save_data/{EXPERIMENT_NAME}/`. Each criterion expects:
 
-**CIZF-DL** (example `train_cizf_UE12TX12_QPSK.py`):
-
-| File stem (key) | Expected array layout |
-|:--|:--|
-| `upsilon_cizf` | `[sample_num, K, K]` complex |
-| `symbol_data` | `[sample_num, K, L]` complex |
-| `delta_cizf` | `[sample_num, 2K, L]` (loader splits to `[sample_num, K, L, 2]`) |
-
-**CIMMSE-DL** (multi-SNR): `upsilon_cimmse` is `[sample_num, K, K, n_snr]`; `delta_cimmse` is `[sample_num, n_snr, 2K, L]`. Default SNR list in scripts: `{0,5,10,15,20,25,30}` dB.
-
-**RCIMMSE-DL**: `channel_data` `[sample_num, K, N_T]`, `symbol_data` `[sample_num, K, L]`, `U_data`, `omega_data`, plus `psi_data` (for A) or `delta_data` (for B). Scripts use `txlen=50`, `alpha_sim=0.995`, SNR list `{10,...,40}` dB.
-
-Typical split in scripts: CIZF/CIMMSE `n_train=90000`, `n_test=10000`; RSLPN `n_train=55000`, `n_test=5000` (per channel realization before SNR tiling where applicable).
+- **CIZF-DL** — `upsilon_cizf` `[N, K, K]`, `symbol_data` `[N, K, L]`, `delta_cizf` `[N, 2K, L]`.
+- **CIMMSE-DL** (multi-SNR) — `upsilon_cimmse` `[N, K, K, n_snr]`, `symbol_data` `[N, K, L]`, `delta_cimmse` `[N, n_snr, 2K, L]`; SNR list `{0, 5, …, 30}` dB.
+- **RCIMMSE-DL** — `channel_data` `[N, K, N_T]`, `symbol_data` `[N, K, L]`, `U_data`, `omega_data`, plus `psi_data` (for RSLPN-A) or `delta_data` (for RSLPN-B); `txlen = 50`, `alpha = 0.995`, SNR list `{10, …, 40}` dB.
 
 ### 2. Train
 
-Hyper-parameters are set **inside** each script (no CLI argparse). Minimal commands:
+Hyper-parameters are set inside each script (no CLI arguments). Run the one you need:
 
 ```bash
-# CIZF-DL (QPSK, K=12, N_T=12) — SLPN with d_hidden=4, n_amde_layer=4
-python train_cizf_UE12TX12_QPSK.py
-
-# CIMMSE-DL (QPSK, K=12, N_T=14)
-python train_cimmse_UE12TX14_QPSK.py
-
-# RCIMMSE-DL: train A, then B
-python train_rcimmse_RSLPN_A.py
-python train_rcimmse_RSLPN_B.py
-
+python train_cizf_UE12TX12_QPSK.py     # CIZF-DL
+python train_cimmse_UE12TX14_QPSK.py   # CIMMSE-DL
+python train_rcimmse_RSLPN_A.py        # robust: train A first,
+python train_rcimmse_RSLPN_B.py        #         then B
 ```
 
-Checkpoints are saved as `./save_data/.../TE.pth.tar` (`net_name='TE'`).
+Checkpoints are saved to `./save_data/.../TE.pth.tar`.
 
 ### 3. Test
 
@@ -147,8 +136,19 @@ python test_cimmse_UE12TX14_QPSK.py
 python test_rcimmse_RSLPN.py
 ```
 
-Tests load `TE.pth.tar` from the corresponding `out_folder`, print Test MSE, and write predicted `delta` (and `psi` for robust) `.mat` files for the external MATLAB pipeline.
+Each test loads `TE.pth.tar`, prints the test MSE, and saves the predicted `delta` (and `psi` for the robust case) as `.mat` files.
 
+### 4. From D to the transmit signal
+
+Because training is **supervised**, the network is optimized only on the gap between its output $\mathbf{D}$ and the ground-truth label. To actually evaluate SLP performance (SER, transmit power, …), you still need to turn $\mathbf{D}$ into the transmit signal and run the downstream recovery. This part is handled by the external MATLAB pipeline, following the algorithm summaries in the paper:
+
+**Perfect CSI (CIZF / CIMMSE)** — decompose $\mathbf{D}$ into the perturbation factors, optionally refine them, build the precoded symbols, and recover the transmit signal with block-level power scaling.
+
+> <sub>Decompose via Eq. (48)–(49) → (optional) post-net refinement via Eq. (51)–(52) → transmit vector & scaling via Eq. (10) for CIZF or Eq. (15)–(16) for CIMMSE → block-level rescaling via Eq. (18). See Algorithm 1 in the paper.</sub>
+
+**Robust (RCIMMSE)** — decompose $\mathbf{D}$, build the precoded symbols, and recover the transmit signal through the robust precoder.
+
+> <sub>Decompose via Eq. (48)–(49) → precoded symbols via Eq. (61) → transmit vector via Eq. (58), with $\mathbf{P}[l]$ from Eq. (59)–(60). See Algorithm 2 in the paper.</sub>
 
 
 
