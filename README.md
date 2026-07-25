@@ -148,7 +148,7 @@ Because training is **supervised**, the network is optimized only on the gap bet
 
 **Robust (RCIMMSE)** — decompose $\mathbf{D}$, build the precoded symbols, and recover the transmit signal through the robust precoder.
 
-> <sub>Decompose via Eq. (48)–(49) → precoded symbols via Eq. (61) → transmit vector via Eq. (58), with $\mathbf{P}_[l]$ from Eq. (59)–(60). See Algorithm 2 in the paper.</sub>
+> <sub>Decompose via Eq. (48)–(49) → precoded symbols via Eq. (61) → transmit vector via Eq. (58), with $\mathbf{P}_{[l]}$ from Eq. (59)–(60). See Algorithm 2 in the paper.</sub>
 
 
 
