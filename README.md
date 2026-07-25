@@ -70,7 +70,7 @@ These basic TE layers are the standard building blocks of tensor-equivariant net
 - **RSLPN** (`RSLPN_A` and `RSLPN_B`(=`SLPN`) in [`models/prec_models.py`](models/prec_models.py)) — a deep-learning, tensor-equivariance-based **robust SLP** method that **extends the perfect-CSI framework to imperfect CSI**. It uses two networks: **RSLPN-A** estimates the auxiliary variable $\boldsymbol{\Psi}$, and **RSLPN-B** (sharing SLPN's architecture) estimates $\mathbf{D}$. Training is sequential — train RSLPN-A first, freeze it, then train RSLPN-B.
 
 
-
+---
 
 
 ## 🔄 Scope: From Network Output $\mathbf{D}$ to Transmit Signal
@@ -103,52 +103,6 @@ $$\bar{\gamma}^\star = \sqrt{\frac{L}{\sum_{l=1}^{L} 1/(\gamma^\star[l])^2}}, \q
 
 > **Imperfect CSI (robust SLP).** The closed-form precoder $\mathbf{P}[l]$ is instead assembled from Eq. (58)–(61), using the auxiliary variable $\boldsymbol{\Psi}$ (from RSLPN-A) together with the perturbation factors $\mathbf{D}$ (from RSLPN-B).
 
----
-
-
-## 🔧 Network / Module Introduction
-
-The framework is built from tensor-equivariant building blocks and one composite attention module:
-
-| Module 🧩 | Function ⚙️ | Shapes ♾️ | Code |
-|:--|:--|:--|:--|
-| **MDE layer** | Fully-connected layer sharing parameters so as to satisfy multidimensional equivariance. | **In** $\mathrm{bs}\times M_1\times\dots\times M_N\times D_I$ → **Out** $\mathrm{bs}\times M_1\times\dots\times M_N\times D_O$ | `MDE_Module`, `MDE_Module_LowFLOPs` in [`models/te_module.py`](models/te_module.py) |
-| **HOE layer** | Equivariant layer for identical permutations across multiple input/output dimensions (2-1 order used here). | **In** $\mathrm{bs}\times K\times K\times L\times D_I$ → **Out** $\mathrm{bs}\times K\times L\times D_O$ | `HOE_2_1_Module` in [`models/te_module.py`](models/te_module.py) |
-| **MDI module** | Attention-based module invariant along specified dimensions. | **In** $\mathrm{bs}\times M_1\times\dots\times M_N\times D_I$ → **Out** with invariant dims removed | `MDI_Module` in [`models/te_module.py`](models/te_module.py) (used by RSLPN-A) |
-| **AMDE** | Attention-based MDE residual block (feature-attention + equivariant-dimension attention), the backbone of the network. | **In / Out** $\mathrm{bs}\times K\times L\times F$ (also 3-D axes for RSLPN-A) | `AMDE_Block` / `AMDE_Network` in [`models/te_models.py`](models/te_models.py); attention helpers in [`models/te_module.py`](models/te_module.py) |
-
-**SLPN** (perfect CSI; class `SLPN` in [`models/prec_models.py`](models/prec_models.py)) stacks these into the mapping $G$. Feature dimensions below use $F$ for the hidden width (`d_hidden`) and $T$ for the number of AMDE blocks (`n_amde_layer`). Paper / default script setting for CIZF-DL & CIMMSE-DL: $F=4$, $T=4$.
-
-$$
-\begin{aligned}
-\mathbf{C}' &= \mathrm{SiLU}(\mathrm{BN}(f_{\mathrm{HOE}}(\mathbf{C}))) && \in \mathbb{R}^{K\times L\times F} \\
-\mathbf{C}'' &= \mathrm{PReLU}(\mathrm{BN}(\mathrm{FC}(\mathbf{C}'))) && \in \mathbb{R}^{K\times L\times F} \\
-\mathbf{B}' &= \mathrm{PReLU}(\mathrm{BN}(f_{\mathrm{MDE}}(\mathbf{B}))) && \in \mathbb{R}^{K\times L\times F} \\
-\mathbf{F} &= \mathrm{FC}([\mathbf{C}'', \mathbf{B}']) && \in \mathbb{R}^{K\times L\times F} \\
-\mathbf{D} &= \mathrm{FC}(f_{\mathrm{AMDE}}^{\times T}(\mathbf{F})) && \in \mathbb{R}^{K\times L\times 2}
-\end{aligned}
-$$
-
-In code, the forward call is `D = model(mat, vec)` where `mat` is $\mathbf{C}$ and `vec` is $\mathbf{B}$.
-
-### RSLPN (imperfect CSI / channel aging)
-
-This repository also includes the robust pipeline (RCIMMSE-DL):
-
-- **RSLPN-A** (`RSLPN_A` in [`models/prec_models.py`](models/prec_models.py)): estimates the non-negative auxiliary variable $\boldsymbol{\Psi}$ (tensor `psi` of shape `[bs, K, L]`). Input features are built inside `input_layer` from channel, symbols, noise power, aging coefficients, and $\mathbf{U}$ (feature width $D_I=8$). Architecture: 3-D AMDE → MDI (pool antenna axis) → 2-D AMDE → Softplus. Script defaults: $F=16$, $T_1=T_2=2$.
-- **RSLPN-B** (alias `RSLPN_B = SLPN`): same architecture as SLPN; predicts $\mathbf{D}$ from robust KKT features $(\mathbf{B},\mathbf{C})$ built via `get_RMMSE_kkt_Upsilon` + `rslpn_kkt_features_from_upsilon` in [`func/prec_func.py`](func/prec_func.py). Script defaults: $F=16$, $T=2$.
-
-Training is sequential: train RSLPN-A first, freeze it, then train RSLPN-B.
-
----
-
-## 📌 Examples
-
-- **Example 1 — CIZF-DL** (SINR-balancing, perfect CSI): `train_cizf_*.py` / `test_cizf_*.py` (e.g. `UE12TX12_QPSK`, `UE12TX14_QPSK`, `UE12TX14_16QAM`).
-- **Example 2 — CIMMSE-DL** (MMSE, perfect CSI): `train_cimmse_*.py` / `test_cimmse_*.py` (QPSK / 16QAM variants).
-- **Example 3 — RCIMMSE-DL** (robust MMSE under channel aging): `train_rcimmse_RSLPN_A.py` → `train_rcimmse_RSLPN_B.py` → `test_rcimmse_RSLPN.py`.
-
-Each example learns the mapping to $\mathbf{D}$ (and, for the robust case, additionally $\boldsymbol{\Psi}$); the transmit-signal reconstruction of [Step 3–5](#from-network-output-d-to-transmit-signal) is left to the external MATLAB pipeline.
 
 ---
 
@@ -156,9 +110,6 @@ Each example learns the mapping to $\mathbf{D}$ (and, for the robust case, addit
 
 ```
 LCSLP_github/
-├── paper/                         # Paper PDF (+ TeX source)
-│   ├── LCSLP.pdf
-│   └── LCSLP.tex
 ├── models/                        # Networks / TE layers
 │   ├── prec_models.py             # SLPN, RSLPN_A, RSLPN_B(=SLPN)
 │   ├── te_models.py               # AMDE_Network / AMDE_Block, dim-list helpers
@@ -176,8 +127,7 @@ LCSLP_github/
 ├── test_rcimmse_RSLPN.py          # Joint RSLPN-A/B testing
 ├── train_data/                    # (not shipped) place .mat datasets here
 ├── save_data/                     # (created at runtime) checkpoints & preds
-├── README.md
-└── LICENSE                        # MIT
+└── README.md
 ```
 
 | File | Role in pipeline |
