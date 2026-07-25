@@ -117,7 +117,7 @@ Put the `.mat` files under `./train_data/{EXPERIMENT_NAME}/`; outputs (checkpoin
 
 ### 2. Train
 
-Hyper-parameters are set inside each script (no CLI arguments). Run the one you need:
+Hyperparameters are set inside each script (no CLI arguments). Run the one you need:
 
 ```bash
 python train_cizf_UE12TX12_QPSK.py     # CIZF-DL
@@ -140,7 +140,7 @@ Each test loads `TE.pth.tar`, prints the test MSE, and saves the predicted `delt
 
 ### 4. From D to the transmit signal
 
-Because training is **supervised**, the network is optimized only on the gap between its output $\mathbf{D}$ and the ground-truth label. To actually evaluate SLP performance (SER, transmit power, …), you still need to turn $\mathbf{D}$ into the transmit signal and run the downstream recovery. This part is handled by the external MATLAB pipeline, following the algorithm summaries in the paper:
+Because training is **supervised**, the network is optimized only on the gap between its output $\mathbf{D}$ and the ground-truth label. To actually evaluate SLP performance (SER, transmit power, …), you still need to turn $\mathbf{D}$ into the transmit signal and run the downstream recovery. This part can be handled by MATLAB, following the algorithm summaries in the paper:
 
 **Perfect CSI (CIZF / CIMMSE)** — decompose $\mathbf{D}$ into the perturbation factors, optionally refine them, build the precoded symbols, and recover the transmit signal with block-level power scaling.
 
@@ -148,7 +148,7 @@ Because training is **supervised**, the network is optimized only on the gap bet
 
 **Robust (RCIMMSE)** — decompose $\mathbf{D}$, build the precoded symbols, and recover the transmit signal through the robust precoder.
 
-> <sub>Decompose via Eq. (48)–(49) → precoded symbols via Eq. (61) → transmit vector via Eq. (58), with $\mathbf{P}_{[l]}$ from Eq. (59)–(60). See Algorithm 2 in the paper.</sub>
+> <sub>Decompose via Eq. (48)–(49) → precoded symbols via Eq. (61) → transmit vector via Eq. (58), with $\mathbf{P}[l]$ from Eq. (59)–(60). See Algorithm 2 in the paper.</sub>
 
 
 
