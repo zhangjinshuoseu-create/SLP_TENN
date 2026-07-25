@@ -72,40 +72,6 @@ These basic TE layers are the standard building blocks of tensor-equivariant net
 
 ---
 
-
-## 🔄 Scope: From Network Output $\mathbf{D}$ to Transmit Signal
-
-> [!IMPORTANT]
-> **This repository implements only the learning core.** From the channel $\mathbf{H}$ and symbols $\mathbf{S}$, it builds the network inputs $(\mathbf{B},\mathbf{C})$ and trains/tests the network that outputs the **perturbation tensor $\mathbf{D}$** (the set of $\delta$ factors). Everything that turns $\mathbf{D}$ into an actual transmit signal — post-net refinement, closed-form precoding, block-level power reallocation, and SER evaluation — lives in a **separate MATLAB pipeline and is _not_ open-sourced here**. The steps below summarize that downstream so the full chain stays reproducible from the paper.
-
-```text
-This repo   :  H, S ──► build (B, C) ──► [ SLPN / RSLPN ] ──► D = [δ̂μ, δ̂ν]
-MATLAB side :        D ──► (optional ρ refine) ──► s̃c ──► closed-form xc ──► block rescale ──► SER
-```
-
-Equation numbers below match [`paper/LCSLP.pdf`](paper/LCSLP.pdf).
-
-**Step 1 — Non-negativity & decomposition (Eq. 48–49).**
-$$\hat{\mathbf{D}} = \mathrm{ReLU}(\mathbf{D}), \qquad \hat{\boldsymbol{\delta}}_\mu[l] = \hat{\mathbf{D}}_{[:,l,1]}, \qquad \hat{\boldsymbol{\delta}}_\nu[l] = \hat{\mathbf{D}}_{[:,l,2]}.$$
-
-**Step 2 — (Optional) post-net refinement (Eq. 50–52).** A scalar $\rho[l]\ge 0$ rescales the perturbation. With $\mathbf{p}[l] = \boldsymbol{\Lambda}_\mu[l]\hat{\boldsymbol{\delta}}_\mu[l] + \boldsymbol{\Lambda}_\nu[l]\hat{\boldsymbol{\delta}}_\nu[l]$,
-$$\rho[l] = \max\left\{0,\ -\frac{\mathbf{s}_c^H[l]\boldsymbol{\Upsilon}\mathbf{p}[l] + \mathbf{p}^H[l]\boldsymbol{\Upsilon}\mathbf{s}_c[l]}{2\,\mathbf{p}^H[l]\boldsymbol{\Upsilon}\mathbf{p}[l]}\right\}, \qquad \tilde{\mathbf{s}}_c[l] = \mathbf{s}_c[l] + \rho[l]\,\mathbf{p}[l].$$
-Without refinement, set $\rho[l]=1$, i.e. $\tilde{\mathbf{s}}_c[l] = \mathbf{s}_c[l] + \mathbf{p}[l]$ (Eq. 11 / 17).
-
-**Step 3 — Closed-form precoding.**
-- CIZF (Eq. 10): $\ \mathbf{x}_c^\star[l] = \gamma^\star[l]\,\mathbf{H}^\dagger\tilde{\mathbf{s}}_c^\star[l], \quad \gamma^\star[l] = \sqrt{P_T / \lVert \mathbf{H}^\dagger\tilde{\mathbf{s}}_c^\star[l]\rVert_2^2}.$
-- CIMMSE (Eq. 15–16): $\ \mathbf{x}_c^\star[l] = \gamma^\star[l]\,\mathbf{H}^H\boldsymbol{\Upsilon}_{\mathrm{MMSE}}\tilde{\mathbf{s}}_c^\star[l], \quad \gamma^\star[l] = \sqrt{P_T / \lVert \mathbf{H}^H\boldsymbol{\Upsilon}_{\mathrm{MMSE}}\tilde{\mathbf{s}}_c^\star[l]\rVert_2^2}.$
-
-**Step 4 — Block-level power reallocation (Eq. 18).** One rescaling factor per block:
-$$\bar{\gamma}^\star = \sqrt{\frac{L}{\sum_{l=1}^{L} 1/(\gamma^\star[l])^2}}, \qquad \bar{\mathbf{x}}_c^\star[l] = \frac{\bar{\gamma}^\star}{\gamma^\star[l]}\,\mathbf{x}_c^\star[l].$$
-
-**Step 5 — Demodulation & SER (Eq. 19).** Transmit $\bar{\mathbf{x}}_c^\star[l]$, scale the received signal by $\bar{\gamma}$, demodulate, and compute the SER.
-
-> **Imperfect CSI (robust SLP).** The closed-form precoder $\mathbf{P}[l]$ is instead assembled from Eq. (58)–(61), using the auxiliary variable $\boldsymbol{\Psi}$ (from RSLPN-A) together with the perturbation factors $\mathbf{D}$ (from RSLPN-B).
-
-
----
-
 ## 🏗️ Project Structure
 
 ```
