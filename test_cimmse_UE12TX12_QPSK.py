@@ -25,7 +25,7 @@ if __name__ == '__main__':
     fa_dim = (1, 2)
     ea_dim = generate_ea_dim_list(n_dim=2)
     model = SLPN(
-        d_c=8, d_b=4, d_hidden=128, n_amde_layer=4,
+        d_c=8, d_b=4, d_hidden=4, n_amde_layer=4,
         amde_dim_list=amde_dim_list, mde_dim_list=mde_dim_list,
         fa_dim=fa_dim, ea_dim=ea_dim)
 
