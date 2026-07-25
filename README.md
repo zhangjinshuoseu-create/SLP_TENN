@@ -2,7 +2,6 @@
 
 [![Code (GitHub)](https://img.shields.io/badge/Code-GitHub-blue?logo=github)](https://github.com/zhangjinshuoseu-create/SLP_TENN)
 [![Paper (arXiv)](https://img.shields.io/badge/Paper-arXiv-b31b1b?logo=arxiv)](https://arxiv.org/abs/2510.02108)
-[![Paper (IEEE)](https://img.shields.io/badge/Paper-IEEE-0052A5?logo=IEEE&logoColor=white)](https://ieeexplore.ieee.org/document/{doc_id})
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/{user}/{repo}/blob/main/LICENSE)
 
 A deep-learning toolkit that learns the **perturbation factors** of **symbol-level precoding (SLP)** with a **tensor equivariant neural network (TENN)**. Instead of solving a non-negative least squares (NNLS) problem iteratively per symbol, the network maps the closed-form problem information $(\mathbf{B}, \mathbf{C})$ directly to the optimal perturbation tensor $\mathbf{D}$, achieving linear online complexity while retaining most of the performance gains of optimal SLP. The framework supports both the **CIZF** (SINR-balancing) and **CIMMSE** criteria, both **PSK and QAM** constellations, and extends to **imperfect CSI** (robust SLP under channel aging).
@@ -11,9 +10,7 @@ A deep-learning toolkit that learns the **perturbation factors** of **symbol-lev
 
 ## 📄 Get the Paper
 
-- **IEEE** — [DOI:10.1109/TWC.XXXX.XXXXXXX](https://doi.org/{doi})
-- **arXiv (with detailed appendix)** — [arXiv:XXXX.XXXXX](https://arxiv.org/abs/{arxiv_id})
-- Local copy in this repo: [`paper/LCSLP.pdf`](paper/LCSLP.pdf)
+- **arXiv (with detailed appendix)** — [arXiv:2510.02108](https://arxiv.org/abs/2510.02108)
 
 ---
 
