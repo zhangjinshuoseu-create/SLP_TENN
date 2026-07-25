@@ -41,6 +41,37 @@ This repository provides a **low-complexity, deep-learning-based framework for s
 ---
 
 
+## 🔧 Network / Module Introduction
+
+The framework is built on three **basic tensor-equivariant (TE) modules**, on top of which the **AMDE** module and the **SLPN / RSLPN** networks are constructed.
+
+### The Basic TE Model
+
+| Module 🧩 (abbr.) | Function ⚙️ | Dimensions ♾️ | Code |
+|:--|:--|:--|:--|
+| **MDE** | The equivalent linear module when any fully connected layer satisfies permutation equivariance across an arbitrary number of dimensions. | **In**: $\mathrm{bs}\times M_1\times \dots \times M_N\times D_I$ <br> **Out**: $\mathrm{bs}\times M_1\times \dots \times M_N\times D_O$ | `MDE_Module`, `MDE_Module_LowFLOPs` in [`models/te_module.py`](models/te_module.py) |
+| **HOE** | The equivalent linear module when an arbitrary fully connected layer exhibits equivariance to identical permutations across multiple input and output dimensions (taking 1-2-order equivariance as an example). | **In**: $\mathrm{bs}\times M\times D_I$ <br> **Out**: $\mathrm{bs}\times M\times M\times D_I$ | `HOE_2_1_Module` in [`models/te_module.py`](models/te_module.py) |
+| **MDI** | A nonlinear module based on the attention mechanism that satisfies permutation invariance across an arbitrary number of dimensions. | **In**: $\mathrm{bs}\times M_1\times \dots \times M_N\times D_I$ <br> **Out**: $\mathrm{bs}\times D_O$ | `MDI_Module` in [`models/te_module.py`](models/te_module.py) |
+
+These basic TE layers are the standard building blocks of tensor-equivariant networks. A more detailed introduction to them (MDE, HOE, and especially the attention-based MDI) can be found in the **[TENN Toolbox](https://github.com/ZJSXYZ/TENN)**.
+
+<p align="center">
+  <img src="imgs/SLP_framework.png" width="900px" alt="Overall structure of the SLP framework"/>
+  <br>
+  <em>The overall structure of the SLP framework (Fig. 4 in the paper).</em>
+</p>
+
+### AMDE / SLPN / RSLPN
+
+- **AMDE** (`AMDE_Block` / `AMDE_Network` in [`models/te_models.py`](models/te_models.py)) — an MDE module augmented with a lightweight, MDE-compliant **decoupled attention mechanism** (feature attention + equivariant-dimension attention), wrapped in a residual connection. It is the backbone of the networks below.
+
+- **SLPN** (`SLPN` in [`models/prec_models.py`](models/prec_models.py)) — the **symbol-level precoding network for perfect CSI**, designed based on tensor equivariance. Stacking the basic TE layers and AMDE blocks, it approximates the mapping $G(\mathbf{B}_c,\mathbf{C}_c)=\mathbf{D}^\star$ and outputs the perturbation tensor $\mathbf{D}$ (see Eq. 43–47 of the paper for the exact forward pass). In code, the forward call is `D = model(mat, vec)`, where `mat` is $\mathbf{C}$ and `vec` is $\mathbf{B}$.
+
+- **RSLPN** (`RSLPN_A` and `RSLPN_B`(=`SLPN`) in [`models/prec_models.py`](models/prec_models.py)) — a deep-learning, tensor-equivariance-based **robust SLP** method that **extends the perfect-CSI framework to imperfect CSI** (channel aging). It uses two networks: **RSLPN-A** estimates the auxiliary variable $\boldsymbol{\Psi}$, and **RSLPN-B** (sharing SLPN's architecture) estimates $\mathbf{D}$. Training is sequential — train RSLPN-A first, freeze it, then train RSLPN-B.
+
+
+
+
 
 ## 🔄 Scope: From Network Output $\mathbf{D}$ to Transmit Signal
 
