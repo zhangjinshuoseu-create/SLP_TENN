@@ -84,26 +84,6 @@ Training is sequential: train RSLPN-A first, freeze it, then train RSLPN-B.
 
 ---
 
-## 🔢 Input / Output at a Glance
-
-Shapes below follow the **PyTorch code** conventions (batch dimension included). Paper symbols without batch are the per-sample slices.
-
-| Symbol / tensor | Meaning | Shape in code |
-|:--|:--|:--|
-| `upsilon` ($\boldsymbol{\Upsilon}$) | KKT / closed-form matrix (perfect CSI scripts load this, not raw $\mathbf{H}$) | CIZF: `[bs, K, K]` complex; CIMMSE: `[bs, K, K, n_snr]` complex |
-| `symbol` / `tx` ($\mathbf{S}$) | transmit symbols over a block | `[bs, K, L]` complex |
-| `channel` ($\mathbf{H}$) | channel (RSLPN path; code stores users×antennas) | `[bs, K, N_T]` complex |
-| `mat` ($\mathbf{C}$) | network input (coefficient term, real+imag) | `[bs, K, K, L, D1]`, $D_1=8$ |
-| `vec` ($\mathbf{B}$) | network input (bias term, real+imag) | `[bs, K, L, D2]`, $D_2=4$ |
-| `delta` / network out ($\mathbf{D}$) | perturbation factors $[\boldsymbol{\delta}_\mu,\boldsymbol{\delta}_\nu]$ | `[bs, K, L, 2]` float |
-| `psi` ($\boldsymbol{\Psi}$) | RSLPN-A output / label | `[bs, K, L]` float |
-
-On-disk label layout before the loaders reshape (CIZF example): `delta_*.mat` stores `[bs, 2K, L]`, which is split into `[bs, K, L, 2]`. CIMMSE / robust labels additionally carry an SNR axis; see [`func/train_func.py`](func/train_func.py).
-
-Training uses a supervised MSE loss between the predicted $\mathbf{D}$ and the label $\mathbf{D}^\star$ obtained from the optimal NNLS solution (Eq. (53) in the paper).
-
----
-
 ## 🔄 From Network Output D to Transmit Signal
 
 The repository stops at $\mathbf{D}$ (and `psi` for the robust case). For completeness, here is how the paper turns $\mathbf{D}$ into the actual transmit signal and, ultimately, an SER measurement. These steps are implemented separately (MATLAB) and are **not** part of this codebase, but you can reproduce them from the equations below. Equation numbers match [`paper/LCSLP.pdf`](paper/LCSLP.pdf).
