@@ -56,7 +56,7 @@ The framework is built on three **basic tensor-equivariant (TE) modules**, on to
 These basic TE layers are the standard building blocks of tensor-equivariant networks. A more detailed introduction to them (MDE, HOE, and especially the attention-based MDI) can be found in the **[TENN Toolbox](https://github.com/ZJSXYZ/TENN)**.
 
 <p align="center">
-  <img src="imgs/SLP_framework.png" width="900px" alt="Overall structure of the SLP framework"/>
+  <img src="imags/SLP_framework.png" width="900px" alt="Overall structure of the SLP framework"/>
   <br>
   <em>The overall structure of the SLP framework (Fig. 4 in the paper).</em>
 </p>
