@@ -111,30 +111,6 @@ Training is sequential: train RSLPN-A first, freeze it, then train RSLPN-B.
 
 ---
 
-## 🔄 From Network Output D to Transmit Signal
-
-The repository stops at $\mathbf{D}$ (and `psi` for the robust case). For completeness, here is how the paper turns $\mathbf{D}$ into the actual transmit signal and, ultimately, an SER measurement. These steps are implemented separately (MATLAB) and are **not** part of this codebase, but you can reproduce them from the equations below. Equation numbers match [`paper/LCSLP.pdf`](paper/LCSLP.pdf).
-
-**Step 1 — Non-negativity & decomposition (Eq. 48–49).**
-$$\hat{\mathbf{D}} = \mathrm{ReLU}(\mathbf{D}), \qquad \hat{\boldsymbol{\delta}}_\mu[l] = \hat{\mathbf{D}}_{[:,l,1]}, \qquad \hat{\boldsymbol{\delta}}_\nu[l] = \hat{\mathbf{D}}_{[:,l,2]}.$$
-
-**Step 2 — (Optional) post-net refinement (Eq. 50–52).** Introduce a scalar $\rho[l]\ge 0$ that rescales the perturbation; with $\mathbf{p}[l] = \boldsymbol{\Lambda}_\mu[l]\hat{\boldsymbol{\delta}}_\mu[l] + \boldsymbol{\Lambda}_\nu[l]\hat{\boldsymbol{\delta}}_\nu[l]$,
-$$\rho[l] = \max\left\{0,\ -\frac{\mathbf{s}_c^H[l]\boldsymbol{\Upsilon}\mathbf{p}[l] + \mathbf{p}^H[l]\boldsymbol{\Upsilon}\mathbf{s}_c[l]}{2\,\mathbf{p}^H[l]\boldsymbol{\Upsilon}\mathbf{p}[l]}\right\}, \qquad \tilde{\mathbf{s}}_c[l] = \mathbf{s}_c[l] + \rho[l]\,\mathbf{p}[l].$$
-Without refinement, set $\rho[l]=1$, i.e. $\tilde{\mathbf{s}}_c[l] = \mathbf{s}_c[l] + \mathbf{p}[l]$ (Eq. 11 / 17).
-
-**Step 3 — Closed-form precoding.**
-- CIZF (Eq. 10): $\quad \mathbf{x}_c^\star[l] = \gamma^\star[l]\,\mathbf{H}^\dagger\tilde{\mathbf{s}}_c^\star[l], \quad \gamma^\star[l] = \sqrt{P_T / \lVert \mathbf{H}^\dagger\tilde{\mathbf{s}}_c^\star[l]\rVert_2^2}.$
-- CIMMSE (Eq. 15–16): $\quad \mathbf{x}_c^\star[l] = \gamma^\star[l]\,\mathbf{H}^H\boldsymbol{\Upsilon}_{\mathrm{MMSE}}\tilde{\mathbf{s}}_c^\star[l], \quad \gamma^\star[l] = \sqrt{P_T / \lVert \mathbf{H}^H\boldsymbol{\Upsilon}_{\mathrm{MMSE}}\tilde{\mathbf{s}}_c^\star[l]\rVert_2^2}.$
-
-**Step 4 — Block-level power reallocation (Eq. 18).** Use a single rescaling factor per block:
-$$\bar{\gamma}^\star = \sqrt{\frac{L}{\sum_{l=1}^{L} 1/(\gamma^\star[l])^2}}, \qquad \bar{\mathbf{x}}_c^\star[l] = \frac{\bar{\gamma}^\star}{\gamma^\star[l]}\,\mathbf{x}_c^\star[l].$$
-
-**Step 5 — Demodulation & SER (Eq. 19).** Transmit $\bar{\mathbf{x}}_c^\star[l]$, scale the received signal by $\bar{\gamma}$ as in Eq. (19), demodulate, and compute SER.
-
-> For **imperfect CSI (robust SLP)**, the closed-form precoder $\mathbf{P}[l]$ is instead assembled from Eq. (58)–(61), using the auxiliary variable $\boldsymbol{\Psi}$ (estimated by RSLPN-A) and the perturbation factors $\mathbf{D}$ (from RSLPN-B).
-
----
-
 ## 📌 Examples
 
 - **Example 1 — CIZF-DL** (SINR-balancing, perfect CSI): `train_cizf_*.py` / `test_cizf_*.py` (e.g. `UE12TX12_QPSK`, `UE12TX14_QPSK`, `UE12TX14_16QAM`).
