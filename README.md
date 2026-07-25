@@ -17,16 +17,12 @@ This repository provides the open-source code for the paper **"[Unlocking Symbol
 
 ## 🧠 Core Concepts
 
-This repository provides a **low-complexity, deep-learning-based framework for symbol-level precoding (SLP)**. Its core is a tensor-equivariant network that learns the SLP **perturbation factors** directly, replacing the expensive per-symbol iterative optimization used by conventional SLP.
+This repository provides a **low-complexity, deep-learning-based framework for symbol-level precoding (SLP)**. Its core is a tensor-equivariant network that learns the SLP **perturbation factors** directly, replacing the expensive per-symbol iterative optimization used by conventional SLP. The paper first analyzes the SLP problem and proves that the mapping from the problem information to its optimal solution is **tensor equivariant (TE)** — permuting users or symbols at the input permutes the solution in exactly the same way. By matching the network's parameter-sharing pattern to this TE structure, the resulting networks obtain low complexity and strong generalization. Two networks are designed accordingly:
 
-**Why.** SLP exploits **constructive interference (CI)** — it pushes each received constellation point deeper into its correct decision region — so it clearly outperforms linear precoding. The price is complexity: the optimal SLP solution requires solving a **non-negative least squares (NNLS)** problem iteratively, *symbol by symbol*, which is too costly for real-time deployment.
+- **SLPN** — for **perfect CSI**.
+- **RSLPN** — for **imperfect CSI**, a two-stage pipeline (RSLPN-A + RSLPN-B) that realizes the robust MMSE design while preserving the same TE.
 
-**How.** The paper first analyzes the SLP problem and proves that the mapping from the problem information to its optimal solution is **tensor equivariant (TE)** — permuting users or symbols at the input permutes the solution in exactly the same way (Proposition 1). By matching the network's parameter-sharing pattern to this TE structure, the resulting networks obtain low complexity and strong generalization. Two networks are designed accordingly:
-
-- **SLPN** — for **perfect CSI**, learns the mapping $G(\mathbf{B}_c,\mathbf{C}_c)=\mathbf{D}^\star$ under both the CIZF and CIMMSE criteria, where $\mathbf{D}^\star=[\boldsymbol{\delta}_\mu^\star,\boldsymbol{\delta}_\nu^\star]$ collects the optimal perturbation factors.
-- **RSLPN** — for **imperfect CSI** (channel aging), a two-stage pipeline (RSLPN-A + RSLPN-B) that realizes the robust MMSE design while preserving the same TE.
-
-**Tensor Equivariance (TE)** generalizes permutation equivariance to high-dimensional tensors and includes:
+**Tensor Equivariance (TE)** generalizes permutation equivariance to high-dimensional tensors and the basic modules includes:
 
 - **Multidimensional Equivariance (MDE)**: permuting each tensor dimension independently produces the same permutation at the output.
 - **High-Order Equivariance (HOE)**: the same permutation is applied simultaneously across multiple dimensions.
