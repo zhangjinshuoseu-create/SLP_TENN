@@ -122,21 +122,12 @@ LCSLP_github/
 ├── test_cizf_*.py                 # CIZF-DL testing entry points
 ├── train_cimmse_*.py              # CIMMSE-DL training entry points
 ├── test_cimmse_*.py               # CIMMSE-DL testing entry points
-├── train_rcimmse_RSLPN_A.py       # RSLPN-A training (ψ)
-├── train_rcimmse_RSLPN_B.py       # RSLPN-B training (D; needs frozen A)
-├── test_rcimmse_RSLPN.py          # Joint RSLPN-A/B testing
+├── train_rcimmse_RSLPN_A.py       # RSLPN-A training 
+├── train_rcimmse_RSLPN_B.py       # RSLPN-B training 
+├── test_rcimmse_RSLPN.py          # RSLPN testing
 ├── train_data/                    # (not shipped) place .mat datasets here
 ├── save_data/                     # (created at runtime) checkpoints & preds
 └── README.md
-```
-
-| File | Role in pipeline |
-|:--|:--|
-| `func/prec_func.py` | **Input construction**: CIR boundaries; `slp_kkt_features` / robust feature builders |
-| `models/te_module.py`, `models/te_models.py` | **Network** building blocks (TE layers, AMDE) |
-| `models/prec_models.py` | **Network** SLPN / RSLPN-A / RSLPN-B |
-| `func/train_func.py`, `func/init_func.py` | **Training / testing** loops and configs |
-| `train_*.py` / `test_*.py` | **Entry points** (paths, hyper-parameters, model construction) |
 
 ---
 
@@ -178,6 +169,8 @@ python train_rcimmse_RSLPN_A.py
 python train_rcimmse_RSLPN_B.py
 ```
 
+```
+
 Checkpoints are saved as `./save_data/.../TE.pth.tar` (`net_name='TE'`).
 
 ### 3. Test
@@ -190,30 +183,8 @@ python test_rcimmse_RSLPN.py
 
 Tests load `TE.pth.tar` from the corresponding `out_folder`, print Test MSE, and write predicted `delta` (and `psi` for robust) `.mat` files for the external MATLAB pipeline.
 
-### 4. Minimal API example
 
-```python
-import torch
-from models.te_models import generate_amde_dim_list, generate_mde_dim_list, generate_ea_dim_list
-from models.prec_models import SLPN
-from func.prec_func import slp_cir_thresholds, slp_kkt_features
 
-amde_dim_list = generate_amde_dim_list(n_amde_layer=4, n_dim=2)
-mde_dim_list = generate_mde_dim_list(n_dim=2)
-ea_dim = generate_ea_dim_list(n_dim=2)
-
-net = SLPN(
-    d_c=8, d_b=4, d_hidden=4, n_amde_layer=4,
-    amde_dim_list=amde_dim_list, mde_dim_list=mde_dim_list,
-    fa_dim=(1, 2), ea_dim=ea_dim,
-)
-
-# upsilon: [bs, K, K] complex; tx: [bs, K, L] complex
-thr_u, thr_l = slp_cir_thresholds(tx, constellation='QPSK', pskOrder=2)
-mat, vec = slp_kkt_features(upsilon, tx, thr_u, thr_l)  # C, B
-# mat: [bs, K, K, L, 8]  |  vec: [bs, K, L, 4]
-D = net(mat, vec)  # output shape [bs, K, L, 2]
-```
 
 ---
 
